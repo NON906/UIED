@@ -97,8 +97,8 @@ class Element:
     def visualize_element(self, img, color=(0, 255, 0), line=1, show=False):
         loc = self.put_bbox()
         cv2.rectangle(img, loc[:2], loc[2:], color, line)
-        cv2.putText(img, str(self.id), (loc[0], loc[1] + 18), cv2.FONT_HERSHEY_DUPLEX, 0.75, (0, 0, 0), 2)
-        cv2.putText(img, str(self.id), (loc[0], loc[1] + 18), cv2.FONT_HERSHEY_DUPLEX, 0.75, color)
+        cv2.putText(img, str(self.id), (loc[0], loc[1] + 12), cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 0), 2)
+        cv2.putText(img, str(self.id), (loc[0], loc[1] + 12), cv2.FONT_HERSHEY_DUPLEX, 0.5, color)
         # for child in self.children:
         #     child.visualize_element(img, color=(255, 0, 255), line=line)
         if show:
