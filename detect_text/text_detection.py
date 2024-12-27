@@ -118,6 +118,23 @@ def text_cvt_orc_format_paddle(paddle_result):
     return texts
 
 
+def text_cvt_orc_format_yomitoku(results):
+    import tempfile
+    texts = []
+    with tempfile.TemporaryDirectory() as dname:
+        file_path = os.path.join(dname, 'yomitoku_results.json')
+        results.to_json(file_path)
+        with open(file_path, 'r', encoding='utf-8') as f:
+            results_dict = json.load(f)
+        for i, word in enumerate(results_dict['words']):
+            points = np.array(word['points'])
+            location = {'left': int(min(points[:, 0])), 'top': int(min(points[:, 1])), 'right': int(max(points[:, 0])),
+                        'bottom': int(max(points[:, 1]))}
+            content = word['content']
+            texts.append(Text(i, content, location))
+    return texts
+
+
 def text_filter_noise(texts):
     valid_texts = []
     for text in texts:
@@ -129,10 +146,10 @@ def text_filter_noise(texts):
 
 def text_detection(input_file='../data/input/30800.jpg', output_file='../data/output', show=False, method='google', paddle_model=None):
     '''
-    :param method: google or paddle
+    :param method: google or paddle or yomitoku
     :param paddle_model: the preload paddle model for paddle ocr
     '''
-    start = time.clock()
+    start = time.perf_counter() #time.clock()
     name = input_file.split('/')[-1][:-4]
     ocr_root = pjoin(output_file, 'ocr')
     img = cv2.imread(input_file)
@@ -152,12 +169,28 @@ def text_detection(input_file='../data/input/30800.jpg', output_file='../data/ou
             paddle_model = PaddleOCR(use_angle_cls=True, lang="ch")
         result = paddle_model.ocr(input_file, cls=True)
         texts = text_cvt_orc_format_paddle(result)
+    elif method == 'yomitoku':
+        from yomitoku import OCR as YomiTokuOCR
+        from yomitoku.data.functions import load_image as yomitoku_load_image
+        print('*** Detect Text through YomiToku OCR ***')
+        yomitoku_img = yomitoku_load_image(input_file)
+        yomitoku_configs = {
+            "text_detector": {
+                "device": "cuda",
+            },
+            "text_recognizer": {
+                "device": "cuda",
+            },
+        }
+        yomitoku_ocr = YomiTokuOCR(configs=yomitoku_configs, visualize=False, device="cuda")
+        results, _ = yomitoku_ocr(yomitoku_img)
+        texts = text_cvt_orc_format_yomitoku(results)
     else:
-        raise ValueError('Method has to be "google" or "paddle"')
+        raise ValueError('Method has to be "google" or "paddle" or "yomitoku"')
 
     visualize_texts(img, texts, shown_resize_height=800, show=show, write_path=pjoin(ocr_root, name+'.png'))
     save_detection_json(pjoin(ocr_root, name+'.json'), texts, img.shape)
-    print("[Text Detection Completed in %.3f s] Input: %s Output: %s" % (time.clock() - start, input_file, pjoin(ocr_root, name+'.json')))
+    print("[Text Detection Completed in %.3f s] Input: %s Output: %s" % (time.perf_counter() - start, input_file, pjoin(ocr_root, name+'.json')))
 
 
 # text_detection()

@@ -65,7 +65,7 @@ if __name__ == '__main__':
     if is_ocr:
         import detect_text.text_detection as text
         os.makedirs(pjoin(output_root, 'ocr'), exist_ok=True)
-        text.text_detection(input_path_img, output_root, show=True, method='google')
+        text.text_detection(input_path_img, output_root, show=True, method='yomitoku') #method='google')
 
     if is_ip:
         import detect_compo.ip_region_proposal as ip
