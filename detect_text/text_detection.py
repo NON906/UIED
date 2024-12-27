@@ -109,7 +109,7 @@ def text_cvt_orc_format(ocr_result):
 
 def text_cvt_orc_format_paddle(paddle_result):
     texts = []
-    for i, line in enumerate(paddle_result):
+    for i, line in enumerate(paddle_result[0]):
         points = np.array(line[0])
         location = {'left': int(min(points[:, 0])), 'top': int(min(points[:, 1])), 'right': int(max(points[:, 0])),
                     'bottom': int(max(points[:, 1]))}
@@ -166,7 +166,7 @@ def text_detection(input_file='../data/input/30800.jpg', output_file='../data/ou
         from paddleocr import PaddleOCR
         print('*** Detect Text through Paddle OCR ***')
         if paddle_model is None:
-            paddle_model = PaddleOCR(use_angle_cls=True, lang="ch")
+            paddle_model = PaddleOCR(use_angle_cls=True, lang="japan")#lang="ch")
         result = paddle_model.ocr(input_file, cls=True)
         texts = text_cvt_orc_format_paddle(result)
     elif method == 'yomitoku':
